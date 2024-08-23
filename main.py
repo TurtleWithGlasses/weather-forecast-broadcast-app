@@ -89,6 +89,34 @@ update_time()
 root.grid_columnconfigure(0, weight=1)
 root.grid_rowconfigure(0,weight=1)
 
+# frame 2 - hourly temperature bars
+def create_temperature_bars(frame, temperatures):
+    canvas = tk.Canvas(frame, bg="white")
+    canvas.pack(fill=tk.BOTH, expand=True)
 
+    # calculate the maximum temperature for scaling the bars
+    max_temp = max(temperatures)
+
+    bar_width = 15
+    spacing = 5
+
+    for i, temp in enumerate(temperatures):
+        # scale the height of the bar according to the temperature
+        bar_height = (temp / max_temp) * 200
+        x0 = i * (bar_width + spacing) + spacing
+        y0 = 250 - bar_height
+        x1 = x0 + bar_width
+        y1= 250
+
+        # draw the bar
+        canvas.create_rectangle(x0, y0, x1, y1, fill="blue")
+
+        # label the bar with the temperature
+        canvas.create_text(x0 + bar_width // 2, y0 - 10, text=f"{temp}°C", font=("Helvetica", 7))
+        canvas.create_text(x0 + bar_width // 2, 260, text=f"{i}h", font=("Helvetiva", 7))
+
+temperatures = [15, 17, 19, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 12, 14, 16, 18, 20, 22, 24, 23]
+
+create_temperature_bars(frame2, temperatures)
 
 root.mainloop()
