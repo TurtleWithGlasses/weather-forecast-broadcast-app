@@ -1,5 +1,6 @@
 import tkinter as tk
 from PIL import Image, ImageTk
+from bs4 import BeautifulSoup
 from datetime import datetime
 import requests
 
@@ -25,7 +26,7 @@ weather_icon_mapping = {
     "Mist": "C:\\Users\\mhmts\\PycharmProjects\\weather forecast & broadcast\\warm-cloudy.png"
 }
 
-# get weather data from api
+# Fetch weather data from the API
 def fetch_weather_data(lat, lon):
     try:
         url = f"http://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={API_KEY}"
@@ -37,17 +38,19 @@ def fetch_weather_data(lat, lon):
         print(f"Error fetching weather data: {e}")
         return None
 
+# Fetch air pollution data from the API
 def fetch_air_pollution_data(lat, lon):
     try:
         url = f"http://api.openweathermap.org/data/2.5/air_pollution/forecast?lat={lat}&lon={lon}&appid={API_KEY}"
         response = requests.get(url)
-        response.raise_for_status() # raise error for bad response
+        response.raise_for_status()  # Raise an error for bad responses
         air_quality_data = response.json()
         return air_quality_data
     except requests.exceptions.RequestException as e:
         print(f"Error fetching air pollution data: {e}")
         return None
 
+# Update air quality information
 def update_air_quality():
     global selected_city
     city_coords = cities[selected_city]
@@ -56,21 +59,21 @@ def update_air_quality():
     if air_quality_data is None:
         print("Air pollution data is not available")
         return
-    
-    # extract the first record from the list
+
+    # Extract the first record from the list
     pollution_info = air_quality_data["list"][0]
     aqi = pollution_info["main"]["aqi"]
     components = pollution_info["components"]
 
-    # clear the frame
+    # Clear the frame before updating
     for widget in frame2.winfo_children():
         widget.destroy()
 
-    # display AQI
-    aqi_label = tk.Label(frame2, text=f"Air Quality Ingex (AQI): {aqi}", font=("Helvetica", 14))
+    # Display AQI
+    aqi_label = tk.Label(frame2, text=f"Air Quality Index (AQI): {aqi}", font=("Helvetica", 14))
     aqi_label.pack()
 
-    # display detailed polutant data
+    # Display detailed pollutant data
     pollutant_labels = {
         "CO": f"CO: {components['co']} µg/m³",
         "NO": f"NO: {components['no']} µg/m³",
@@ -85,8 +88,8 @@ def update_air_quality():
     for key, text in pollutant_labels.items():
         pollutant_label = tk.Label(frame2, text=text, font=("Helvetica", 12))
         pollutant_label.pack(anchor="w", padx=20)
-    
-    # interpretation of AQI
+
+    # Interpretation of AQI
     if aqi <= 50:
         quality_text = "Good: Air quality is considered satisfactory."
     elif aqi <= 100:
@@ -103,6 +106,7 @@ def update_air_quality():
     quality_label = tk.Label(frame2, text=quality_text, font=("Helvetica", 12), fg="red")
     quality_label.pack(pady=10)
 
+# Update weather information
 def update_weather():
     global selected_city
     city_coords = cities[selected_city]
@@ -112,34 +116,54 @@ def update_weather():
         print("Weather data is not available.")
         return
 
-    # update 3-hour forecast
+    # Update 3-hour forecast
     for i in range(8):  # Adjust this number based on how many intervals you want to display
         interval_weather = weather_data["list"][i]
         temp = interval_weather["main"]["temp"]
-        weather_descirption = interval_weather["weather"][0]["main"]   # get the main weather description
+        weather_descirption = interval_weather["weather"][0]["main"]  # Get the main weather description
 
-        # extract and format time from dt_txt
+        # Extract and format time from dt_txt
         raw_time = interval_weather["dt_txt"]
         formatted_time = datetime.strptime(raw_time, "%Y-%m-%d %H:%M:%S").strftime("%H:%M")
 
-        # map the weather description to the corresponding local image
+        # Map the weather description to the corresponding local image
         icon_path = weather_icon_mapping.get(weather_descirption, "C:\\Users\\mhmts\\PycharmProjects\\weather forecast & broadcast\\default.png")
 
         day_label[i].config(text=formatted_time)
         temp_label[i].config(text=f"{temp}°C")
-        
-        # load weather icon from local path
+
+        # Load weather icon from local path
         img = Image.open(icon_path)
-        img = img.resize((50,50), Image.LANCZOS)
+        img = img.resize((50, 50), Image.LANCZOS)
         icon_img = ImageTk.PhotoImage(img)
         icon_label[i].config(image=icon_img)
         icon_label[i].image = icon_img
 
+# Fetch news headlines from the BBC News website
+def fetch_news():
+    url = "https://www.bbc.com/news"
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        # Find headlines using 'h2' tag and 'data-testid' attribute
+        headlines = soup.find_all("h2", attrs={"data-testid": "card-headline"})
+
+        # Extract and return the text from the headlines
+        return [headline.get_text() for headline in headlines]
+
+    else:
+        print(f"Failed to retrieve news. Status code: {response.status_code}")
+        return []
+
+# Update the time every second
 def update_time():
     current_time = datetime.now().strftime("%H:%M:%S")
     time_label.config(text=current_time)
     root.after(1000, update_time)
 
+# Update the weather and air quality information when a city is selected
 def on_city_selected(selection):
     global selected_city
     selected_city = selection
@@ -147,25 +171,52 @@ def on_city_selected(selection):
     update_weather()
     update_air_quality()
 
+# Update news headlines
+def update_news():
+    # Clear the news frame before updating
+    for widget in news_frame.winfo_children():
+        widget.destroy()
+
+    # Fetch and display news headlines
+    headlines = fetch_news()
+    for headline in headlines[:10]:  # Limit top 10 headlines
+        headline_label = tk.Label(news_frame, text=headline, font=("Helvetica", 12), wraplength=200, anchor="w", justify="left")
+        headline_label.pack(anchor="w", padx=10, pady=5)
+
+# Configure the scrollbar's scroll region when the news frame is resized
+def on_frame_configure(event):
+    canvas.configure(scrollregion=canvas.bbox("all"))
 
 root = tk.Tk()
 root.title("Weather Forecast & News Broadcast")
 root.geometry("900x600")
 
 root.grid_columnconfigure(0, weight=1)
-root.grid_rowconfigure(0,weight=1)
+root.grid_rowconfigure(0, weight=1)
 
-# Frame for date, time, location, 7-day forecast (now 3-hour intervals)
-frame1 = tk.Frame(root, width=600, height=200, relief="ridge", bd=2, background="white")
+# Frame for date, time, location, 3-hour forecast
+frame1 = tk.Frame(root, width=600, height=200, relief="ridge", bd=2)
 frame1.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
-# Frame for 24-hour temperature bars (now 8 intervals)
-frame2 = tk.Frame(root, width=600, height=300, relief="ridge", bd=2, background="white")
+# Frame for air quality
+frame2 = tk.Frame(root, width=600, height=300, relief="ridge", bd=2)
 frame2.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
-# Frame for news headlines
-frame3 = tk.Frame(root, width=250, height=600, relief="ridge", bd=2, background="white")
+# Scrollable frame for news headlines
+frame3 = tk.Frame(root, width=200, height=600, relief="ridge", bd=2)
 frame3.grid(row=0, column=1, rowspan=2, padx=10, pady=10, sticky="nsew")
+
+# Canvas and scrollbar setup
+canvas = tk.Canvas(frame3)
+scrollbar = tk.Scrollbar(frame3, orient="vertical", command=canvas.yview)
+news_frame = tk.Frame(canvas)
+
+news_frame.bind("<Configure>", on_frame_configure)
+canvas.create_window((0, 0), window=news_frame, anchor="nw")
+
+canvas.configure(yscrollcommand=scrollbar.set)
+canvas.pack(side="left", fill="both", expand=True)
+scrollbar.pack(side="right", fill="y")
 
 # Date, time & location labels
 date_label = tk.Label(frame1, text=datetime.now().strftime("%A, %d, %B, %Y"), font=("Helvetica", 14))
@@ -177,7 +228,7 @@ time_label.grid(row=1, column=0, padx=5, pady=5, sticky="nw")
 location_label = tk.Label(frame1, text="Istanbul", font=("Helvetica", 14))
 location_label.grid(row=0, column=2, padx=5, pady=5, sticky="ne")
 
-# dropdown menu for city selection
+# Dropdown menu for city selection
 city_var = tk.StringVar(value=selected_city)
 city_menu = tk.OptionMenu(frame1, city_var, *cities.keys(), command=on_city_selected)
 city_menu.grid(row=0, column=2, padx=5, pady=5, sticky="ne")
@@ -192,7 +243,7 @@ frame1.grid_rowconfigure(3, weight=1)
 # 3-hour forecast layout (adjusted from 7-day layout)
 forecast_frame = tk.Frame(frame1)
 forecast_frame.grid(row=3, column=0, columnspan=3, padx=5, pady=5, sticky="sew")
-forecast_frame.grid_columnconfigure(tuple(range(8)),weight=1)  # Adjusted for 8 intervals
+forecast_frame.grid_columnconfigure(tuple(range(8)), weight=1)  # Adjusted for 8 intervals
 
 icon_label = [None] * 8
 day_label = [None] * 8
@@ -215,5 +266,6 @@ for i in range(8):  # Adjusted to display 8 intervals
 update_time()
 update_weather()
 update_air_quality()
+update_news()
 
 root.mainloop()
