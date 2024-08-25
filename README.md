@@ -16,7 +16,7 @@ Prerequisites
 Python 3.x: Ensure you have Python 3.x installed.
 pip: Python package installer should be installed.
 
-git clone https://github.com/yourusername/weather-news-app.git
+git clone https://github.com/TurtleWithGlasses/weather-news-app.git
 cd weather-news-app
 
 
