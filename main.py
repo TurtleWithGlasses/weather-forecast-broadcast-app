@@ -12,18 +12,18 @@ cities = {
 }
 
 selected_city = "Istanbul"
-API_KEY = "3556c30d49b807fffbe5214c6bccde78"  # Replace with your valid API key
+API_KEY = "YOUR_API_KEY"  # Replace with your valid API key
 
 # weather icons
 weather_icon_mapping = {
-    "Clouds": "C:\\Users\\mhmts\\PycharmProjects\\weather forecast & broadcast\\cloudy.png",
-    "Drizzle": "C:\\Users\\mhmts\\PycharmProjects\\weather forecast & broadcast\\mixed.png",
-    "Rain": "C:\\Users\\mhmts\\PycharmProjects\\weather forecast & broadcast\\raining.png",
-    "Shower rain": "C:\\Users\\mhmts\\PycharmProjects\\weather forecast & broadcast\\showering.png",
-    "Snow": "C:\\Users\\mhmts\\PycharmProjects\\weather forecast & broadcast\\snowing.png",
-    "Thunderstorm": "C:\\Users\\mhmts\\PycharmProjects\\weather forecast & broadcast\\storm.png",
-    "Clear": "C:\\Users\\mhmts\\PycharmProjects\\weather forecast & broadcast\\sunny.png",
-    "Mist": "C:\\Users\\mhmts\\PycharmProjects\\weather forecast & broadcast\\warm-cloudy.png"
+    "Clouds": "cloudy.png",
+    "Drizzle": "mixed.png",
+    "Rain": "raining.png",
+    "Shower rain": "showering.png",
+    "Snow": "snowing.png",
+    "Thunderstorm": "storm.png",
+    "Clear": "sunny.png",
+    "Mist": "warm-cloudy.png"
 }
 
 # Fetch weather data from the API
