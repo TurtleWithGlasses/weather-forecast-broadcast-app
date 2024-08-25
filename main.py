@@ -37,6 +37,56 @@ def fetch_weather_data(lat, lon):
         print(f"Error fetching weather data: {e}")
         return None
 
+def fetch_air_pollution_data(lat, lon):
+    try:
+        url = f"http://api.openweathermap.org/data/2.5/air_pollution/forecast?lat={lat}&lon={lon}&appid={API_KEY}"
+        response = requests.get(url)
+        response.raise_for_status() # raise error for bad response
+        air_quality_data = response.json()
+        return air_quality_data
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching air pollution data: {e}")
+        return None
+
+def update_air_quality():
+    global selected_city
+    city_coords = cities[selected_city]
+    air_quality_data = fetch_air_pollution_data(city_coords["lat"], city_coords["lon"])
+
+    if air_quality_data is None:
+        print("Air pollution data is not available")
+        return
+    
+    # extract the first record from the list
+    pollution_info = air_quality_data["list"][0]
+    aqi = pollution_info["main"]["aqi"]
+    components = pollution_info["components"]
+
+    # clear the frame
+    for widget in frame2.winfo_children():
+        widget.destroy()
+
+    # display AQI
+    aqi_label = tk.Label(frame2, text=f"Air Quality Ingex (AQI): {aqi}", font=("Helvetica", 14))
+    aqi_label.pack()
+
+    # display detailed polutant data
+    pollutant_labels = {
+        "CO": f"CO: {components['co']} µg/m³",
+        "NO": f"NO: {components['no']} µg/m³",
+        "NO2": f"NO2: {components['no2']} µg/m³",
+        "O3": f"O3: {components['o3']} µg/m³",
+        "SO2": f"SO2: {components['so2']} µg/m³",
+        "PM2.5": f"PM2.5: {components['pm2_5']} µg/m³",
+        "PM10": f"PM10: {components['pm10']} µg/m³",
+        "NH3": f"NH3: {components['nh3']} µg/m³"
+    }
+
+    for key, text in pollutant_labels.items():
+        pollutant_label = tk.Label(frame2, text=text, font=("Helvetica", 12))
+        pollutant_label.pack(anchor="w", padx=20)
+
+
 def update_weather():
     global selected_city
     city_coords = cities[selected_city]
@@ -69,35 +119,6 @@ def update_weather():
         icon_label[i].config(image=icon_img)
         icon_label[i].image = icon_img
 
-    # Update the temperature bars for the next 8 intervals (24 hours)
-    temperatures = [interval["main"]["temp"] for interval in weather_data["list"][:8]]
-    create_temperature_bars(frame2, temperatures)
-
-# Frame 2 - Temperature Bars
-def create_temperature_bars(frame, temperatures):
-
-    # clear any existing widgets in the frame
-    for widget in frame.winfo_children():
-        widget.destroy()
-        
-    canvas = tk.Canvas(frame, bg="white")
-    canvas.pack(fill=tk.BOTH, expand=True)
-
-    max_temp = max(temperatures)
-    bar_width = 40
-    spacing = 15
-
-    for i, temp in enumerate(temperatures):
-        bar_height = (temp / max_temp) * 200
-        x0 = i * (bar_width + spacing) + spacing
-        y0 = 250 - bar_height
-        x1 = x0 + bar_width
-        y1= 250
-
-        canvas.create_rectangle(x0, y0, x1, y1, fill="blue")
-        canvas.create_text(x0 + bar_width // 2, y0 - 10, text=f"{temp}°C", font=("Helvetica", 7))
-        canvas.create_text(x0 + bar_width // 2, 260, text=f"{i*3}h", font=("Helvetica", 7))
-
 def update_time():
     current_time = datetime.now().strftime("%H:%M:%S")
     time_label.config(text=current_time)
@@ -108,6 +129,8 @@ def on_city_selected(selection):
     selected_city = selection
     location_label.config(text=selected_city)
     update_weather()
+    update_air_quality()
+
 
 root = tk.Tk()
 root.title("Weather Forecast & News Broadcast")
@@ -175,5 +198,6 @@ for i in range(8):  # Adjusted to display 8 intervals
 
 update_time()
 update_weather()
+update_air_quality()
 
 root.mainloop()
