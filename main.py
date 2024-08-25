@@ -85,7 +85,23 @@ def update_air_quality():
     for key, text in pollutant_labels.items():
         pollutant_label = tk.Label(frame2, text=text, font=("Helvetica", 12))
         pollutant_label.pack(anchor="w", padx=20)
+    
+    # interpretation of AQI
+    if aqi <= 50:
+        quality_text = "Good: Air quality is considered satisfactory."
+    elif aqi <= 100:
+        quality_text = "Moderate: Air quality is acceptable; some pollutants may pose a moderate health concern for sensitive people."
+    elif aqi <= 150:
+        quality_text = "Unhealthy for Sensitive Groups: People with respiratory or heart conditions may experience effects."
+    elif aqi <= 200:
+        quality_text = "Unhealthy: Everyone may begin to experience health effects."
+    elif aqi <= 300:
+        quality_text = "Very Unhealthy: Health alert; everyone may experience more serious health effects."
+    else:
+        quality_text = "Hazardous: Health warnings of emergency conditions. The entire population is more likely to be affected."
 
+    quality_label = tk.Label(frame2, text=quality_text, font=("Helvetica", 12), fg="red")
+    quality_label.pack(pady=10)
 
 def update_weather():
     global selected_city
