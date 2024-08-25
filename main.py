@@ -3,8 +3,15 @@ from PIL import Image, ImageTk
 from datetime import datetime
 import requests
 
+# coordinates for the cities
+cities = {
+    "Istanbul": {"lat": 41.015137, "lon": 28.979530},
+    "Tekirdağ": {"lat": 40.977779, "lon": 27.515278},
+    "Tokat": {"lat": 40.316667, "lon": 36.55}
+}
+
+selected_city = "Istanbul"
 API_KEY = "3556c30d49b807fffbe5214c6bccde78"  # Replace with your valid API key
-LOCATION = "Istanbul"
 
 # weather icons
 weather_icon_mapping = {
@@ -19,9 +26,9 @@ weather_icon_mapping = {
 }
 
 # get weather data from api
-def fetch_weather_data():
+def fetch_weather_data(lat, lon):
     try:
-        url = f"http://api.openweathermap.org/data/2.5/forecast?q={LOCATION}&units=metric&appid={API_KEY}"
+        url = f"http://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={API_KEY}"
         response = requests.get(url)
         response.raise_for_status()  # Raise an error for bad responses
         weather_data = response.json()
@@ -31,7 +38,9 @@ def fetch_weather_data():
         return None
 
 def update_weather():
-    weather_data = fetch_weather_data()
+    global selected_city
+    city_coords = cities[selected_city]
+    weather_data = fetch_weather_data(city_coords["lat"], city_coords["lon"])
 
     if weather_data is None:
         print("Weather data is not available.")
@@ -66,6 +75,11 @@ def update_weather():
 
 # Frame 2 - Temperature Bars
 def create_temperature_bars(frame, temperatures):
+
+    # clear any existing widgets in the frame
+    for widget in frame.winfo_children():
+        widget.destroy()
+        
     canvas = tk.Canvas(frame, bg="white")
     canvas.pack(fill=tk.BOTH, expand=True)
 
@@ -88,6 +102,12 @@ def update_time():
     current_time = datetime.now().strftime("%H:%M:%S")
     time_label.config(text=current_time)
     root.after(1000, update_time)
+
+def on_city_selected(selection):
+    global selected_city
+    selected_city = selection
+    location_label.config(text=selected_city)
+    update_weather()
 
 root = tk.Tk()
 root.title("Weather Forecast & News Broadcast")
@@ -117,6 +137,11 @@ time_label.grid(row=1, column=0, padx=5, pady=5, sticky="nw")
 
 location_label = tk.Label(frame1, text="Istanbul", font=("Helvetica", 14))
 location_label.grid(row=0, column=2, padx=5, pady=5, sticky="ne")
+
+# dropdown menu for city selection
+city_var = tk.StringVar(value=selected_city)
+city_menu = tk.OptionMenu(frame1, city_var, *cities.keys(), command=on_city_selected)
+city_menu.grid(row=0, column=2, padx=5, pady=5, sticky="ne")
 
 # Configuration of the grid for the frame
 frame1.grid_columnconfigure(0, weight=1)
