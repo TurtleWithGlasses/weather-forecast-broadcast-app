@@ -43,10 +43,14 @@ def update_weather():
         temp = interval_weather["main"]["temp"]
         weather_descirption = interval_weather["weather"][0]["main"]   # get the main weather description
 
+        # extract and format time from dt_txt
+        raw_time = interval_weather["dt_txt"]
+        formatted_time = datetime.strptime(raw_time, "%Y-%m-%d %H:%M:%S").strftime("%H:%M")
+
         # map the weather description to the corresponding local image
         icon_path = weather_icon_mapping.get(weather_descirption, "C:\\Users\\mhmts\\PycharmProjects\\weather forecast & broadcast\\default.png")
 
-        day_label[i].config(text=interval_weather["dt_txt"])
+        day_label[i].config(text=formatted_time)
         temp_label[i].config(text=f"{temp}°C")
         
         # load weather icon from local path
@@ -87,7 +91,7 @@ def update_time():
 
 root = tk.Tk()
 root.title("Weather Forecast & News Broadcast")
-root.geometry("800x600")
+root.geometry("900x600")
 
 root.grid_columnconfigure(0, weight=1)
 root.grid_rowconfigure(0,weight=1)
