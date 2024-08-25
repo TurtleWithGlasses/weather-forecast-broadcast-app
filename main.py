@@ -257,10 +257,10 @@ for i in range(8):  # Adjusted to display 8 intervals
     icon_label[i] = tk.Label(day_frame)
     icon_label[i].pack()
 
-    day_label[i] = tk.Label(day_frame, font=("Helvetica", 10))
+    day_label[i] = tk.Label(day_frame, font=("Helvetica", 9))
     day_label[i].pack(pady=5)
 
-    temp_label[i] = tk.Label(day_frame, font=("Helvetica", 12))
+    temp_label[i] = tk.Label(day_frame, font=("Helvetica", 9))
     temp_label[i].pack(side=tk.BOTTOM, pady=5)
 
 update_time()
